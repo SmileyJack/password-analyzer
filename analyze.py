@@ -4,23 +4,22 @@ import string
 def analyze_password_file(file_path):
     try:
         with open(file_path, 'r') as file:
-            passwords = file.readlines()
+            passwords = file.read().splitlines()
         
         print(f"Total passwords in file: {len(passwords)}")
 
-        weak_passwords = [pwd.strip() for pwd in passwords if len(pwd.strip()) < 8]
-        print(f"Weak passwords (less than 8 characters): {len(weak_passwords)}")
+        # weak_passwords = [pwd.strip() for pwd in passwords if len(pwd.strip()) < 8]
+        # print(f"Weak passwords (less than 8 characters): {len(weak_passwords)}")
+
+        identify_common_passwords(passwords)
 
         pass_dict = {}
         for password in passwords:
             entropy = calculate_entropy(password)
-            new_pass = "\n".join(line.strip() for line in password.splitlines()) # strips new lines so we dont have to deal with it
-            pass_dict[new_pass] = entropy
+            pass_dict[password] = entropy
 
         sorted_dict = dict(sorted(pass_dict.items(), key=lambda item: item[1], reverse=True))
 
-        # print(sorted_dict)
-        # print(pass_dict)
         
     except FileNotFoundError:
         print("The file was not found. Please check the file path and try again.")
@@ -28,6 +27,15 @@ def analyze_password_file(file_path):
         print(f"An error occurred: {e}")
     return sorted_dict
 
+def identify_common_passwords(passwords):
+
+    with open("10k-most-common.txt", 'r') as file:
+            most_common_passwords = file.read().splitlines()
+
+    for password in passwords:
+        for common_password in most_common_passwords:
+            if common_password == password:
+                print("password that is too common was found: " + password)
 
 def calculate_entropy(password):
     lower_case = string.ascii_lowercase
@@ -65,7 +73,8 @@ def display_results(sorted_passwords):
 
 
 def main():
-    file_path = input("Please enter the path to the file containing the passwords: ")
+    # file_path = input("Please enter the path to the file containing the passwords: ")
+    file_path = "passwords.txt"
     sorted_passwords = analyze_password_file(file_path)
     display_results(sorted_passwords)
 
