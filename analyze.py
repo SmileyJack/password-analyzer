@@ -45,8 +45,8 @@ def calculate_repetition_penalty(password):
     
     penalty = 0
     for char, count in char_counts.items():
-        if count > 2:
-            penalty += (count - 2)
+        if count > 3:
+            penalty += (count - 3)
     
     return penalty
 
@@ -77,11 +77,11 @@ def calculate_dictionary_penalty(password):
         penalty += 30
 
     for word in dictionary_words:
-        if word in password.lower():
-            penalty += 20
-        elif word in normalized_password:
-            penalty += 15
-
+        if len(word) > 3:
+            if word in password.lower():
+                penalty += 20
+            elif word in normalized_password:
+                penalty += 15
     return penalty
 
 

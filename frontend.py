@@ -50,7 +50,6 @@ screen_height = root.winfo_screenheight()
 position_x = (screen_width // 2) - (window_width // 2)
 position_y = (screen_height // 2) - (window_height // 2)
 root.geometry(f"{window_width}x{window_height}+{position_x}+{position_y}")
-root.resizable(False, False)
 
 title_label = tk.Label(root, text="Password Strength Analyzer", font=("Helvetica", 16, "bold"))
 title_label.pack(pady=10)
