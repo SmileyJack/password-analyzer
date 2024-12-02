@@ -10,9 +10,16 @@ def calculate_repetition_penalty(password):
         if count > 3:
             penalty += (count - 3)
     
-    return penalty
+    return min(penalty, len(password) // 2)
 
 def calculate_dictionary_penalty(password):
+
+    with open("10k-most-common.txt", 'r') as file:
+            most_common_passwords = file.read().splitlines()
+    for common_password in most_common_passwords:
+        if common_password == password:
+            return -1
+
     substitutions = {
         '@': 'a',
         '4': 'a',
@@ -36,15 +43,19 @@ def calculate_dictionary_penalty(password):
         return -1
 
     if normalized_password in dictionary_words:
-        penalty += 30
+        penalty += 20
+        return penalty
 
     for word in dictionary_words:
         if len(word) > 3:
             if word in password.lower():
-                penalty += 20
+                penalty += 10
             elif word in normalized_password:
-                penalty += 15
-    return penalty
+                if len(word) < len(password) // 2:
+                    penalty += 3
+                else:
+                    penalty += 8
+    return min(penalty, 30)
 
 
 def calculate_pattern_penalty(password):
@@ -71,7 +82,7 @@ def calculate_pattern_penalty(password):
     if password == password[::-1]:
         penalty += 1
 
-    return penalty
+    return min(penalty,5)
 
 def calculate_entropy(password):
 
@@ -103,7 +114,8 @@ def calculate_entropy(password):
 
     base_entropy = L * np.log2(N)
 
-    improved_entropy = (L - P - R) * np.log2(N) - D
+    adjusted_length = max(1, L - P - R)
+    improved_entropy = max(0,adjusted_length * np.log2(N) - D)
 
     if (D == -1):
         improved_entropy = 0

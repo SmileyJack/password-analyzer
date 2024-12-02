@@ -2,10 +2,13 @@ import numpy as np
 import string
 from collections import Counter
 from entropy import calculate_entropy
+import matplotlib.pyplot as plt
 
 def analyze_password_file(file_path):
 
     sorted_dict = {}
+    entropies = []
+    passwords = []
     try:
         with open(file_path, 'r') as file:
             passwords = file.read().splitlines()
@@ -19,10 +22,12 @@ def analyze_password_file(file_path):
 
         pass_dict = {}
         for password in passwords:
-            entropy, improved = calculate_entropy(password)
+            entropy, improved_entropy = calculate_entropy(password)
             pass_dict[password] = entropy
+            entropies.append((password, entropy, improved_entropy))
 
         sorted_dict = dict(sorted(pass_dict.items(), key=lambda item: item[1], reverse=True))
+        visualize_entropy(entropies)
 
     except FileNotFoundError:
         print("The file was not found. Please check the file path and try again.")

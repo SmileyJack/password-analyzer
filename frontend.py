@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from analyze import calculate_entropy
+from entropy import calculate_entropy
 
 def analyze_password():
     password = password_entry.get()
@@ -9,29 +9,41 @@ def analyze_password():
         return
 
     try:
-        entropy, improved_entropy = calculate_entropy(password)
+        base_entropy, improved_entropy = calculate_entropy(password)
 
-        if entropy < 30:
+        if base_entropy < 40:
             base_strength = "Weak"
             base_color = "red"
-        elif entropy < 75:
+        elif base_entropy < 75:
             base_strength = "Moderate"
             base_color = "orange"
-        else:
+        elif base_entropy < 100:
             base_strength = "Strong"
             base_color = "green"
+        elif base_entropy < 150:
+            base_strength = "Very Strong"
+            base_color = "green"
+        else:
+            base_strength = "UNHACKABLE"
+            base_color = "green"
 
-        if improved_entropy < 30:
+        if improved_entropy < 40:
             improved_strength = "Weak"
             improved_color = "red"
         elif improved_entropy < 75:
             improved_strength = "Moderate"
             improved_color = "orange"
-        else:
+        elif improved_entropy < 100:
             improved_strength = "Strong"
             improved_color = "green"
+        elif improved_entropy < 150:
+            improved_strength = "Very Strong"
+            improved_color = "green"
+        else:
+            improved_strength = "UNHACKABLE"
+            improved_color = "green"
 
-        base_entropy_label.config(text=f"Base Entropy: {entropy:.2f}", fg=base_color)
+        base_entropy_label.config(text=f"Base Entropy: {base_entropy:.2f}", fg=base_color)
         base_strength_label.config(text=f"Base Strength: {base_strength}", fg=base_color)
 
         improved_entropy_label.config(text=f"Improved Entropy: {improved_entropy:.2f}", fg=improved_color)
