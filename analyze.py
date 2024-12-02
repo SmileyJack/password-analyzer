@@ -1,7 +1,10 @@
 import numpy as np
 import string
+from collections import Counter
 
 def analyze_password_file(file_path):
+
+    sorted_dict = {}
     try:
         with open(file_path, 'r') as file:
             passwords = file.read().splitlines()
@@ -37,7 +40,40 @@ def identify_common_passwords(passwords):
             if common_password == password:
                 print("password that is too common was found: " + password)
 
+def calculate_repetition_penalty(password):
+    char_counts = Counter(password)
+    
+    penalty = 0
+    for char, count in char_counts.items():
+        if count > 2:
+            penalty += (count - 2)
+    
+    return penalty
+
+def calculate_dictionary_penalty(password):
+    filepath = "words_alpha.txt"
+    penalty = 0
+    with open(filepath, 'r') as file:
+        dictionary_words = file.read().splitlines()
+    
+    for word in dictionary_words:
+        if word == password:
+            return -1
+        if word in password:
+            penalty += 20
+    return penalty
+
+        
+
 def calculate_entropy(password):
+
+    # Pattern penalty
+    P = calculate_repetition_penalty(password)
+    # Dictionary penalty
+    D = calculate_dictionary_penalty(password)
+    # Repitition penalty
+    R = 0
+
     lower_case = string.ascii_lowercase
     upper_case = string.ascii_uppercase
     digits = string.digits
@@ -57,8 +93,15 @@ def calculate_entropy(password):
     N = len(possible_chars)
     L = len(password)
 
-    entropy = L * np.log2(N)
-    return entropy
+    base_entropy = L * np.log2(N)
+
+    improved_entropy = (L - P - R) * np.log2(N) - D
+
+    if (D == -1):
+        improved_entropy = 0
+    
+
+    return base_entropy, improved_entropy
 
 def display_results(sorted_passwords):
         # Sort the dictionary by entropy values in descending order
