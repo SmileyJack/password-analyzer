@@ -1,6 +1,7 @@
 import numpy as np
 import string
 from collections import Counter
+from entropy import calculate_entropy
 
 def analyze_password_file(file_path):
 
@@ -23,7 +24,6 @@ def analyze_password_file(file_path):
 
         sorted_dict = dict(sorted(pass_dict.items(), key=lambda item: item[1], reverse=True))
 
-        
     except FileNotFoundError:
         print("The file was not found. Please check the file path and try again.")
     except Exception as e:
@@ -40,125 +40,36 @@ def identify_common_passwords(passwords):
             if common_password == password:
                 print("password that is too common was found: " + password)
 
-def calculate_repetition_penalty(password):
-    char_counts = Counter(password)
-    
-    penalty = 0
-    for char, count in char_counts.items():
-        if count > 3:
-            penalty += (count - 3)
-    
-    return penalty
-
-def calculate_dictionary_penalty(password):
-    substitutions = {
-        '@': 'a',
-        '4': 'a',
-        '3': 'e',
-        '!': 'i',
-        '1': 'l',
-        '0': 'o',
-        '$': 's',
-        '5': 's',
-        '7': 't'
-    }
-
-    normalized_password = ''.join(substitutions.get(char, char) for char in password.lower())
-    filepath = "words_alpha.txt"
-    penalty = 0
-
-    with open(filepath, 'r') as file:
-        dictionary_words = file.read().splitlines()
-
-    if password.lower() in dictionary_words:
-        return -1
-
-    if normalized_password in dictionary_words:
-        penalty += 30
-
-    for word in dictionary_words:
-        if len(word) > 3:
-            if word in password.lower():
-                penalty += 20
-            elif word in normalized_password:
-                penalty += 15
-    return penalty
-
-
-def calculate_pattern_penalty(password):
-    penalty = 0
-
-    # Detect repeating sequences
-    if any(password[i:i + len(password)//2] * 2 == password for i in range(len(password)//2)):
-        penalty += 1
-
-    # Detect keyboard patterns
-    keyboard_patterns = ["qwerty", "asdf", "zxcv", "1234", "5678", "0987"]
-    for pattern in keyboard_patterns:
-        if pattern in password.lower():
-            penalty += 1
-
-    # Detect sequential characters
-    def is_sequential(s):
-        return all(ord(s[i]) + 1 == ord(s[i + 1]) for i in range(len(s) - 1))
-
-    if is_sequential(password) or is_sequential(password[::-1]):
-        penalty += 1
-
-    # Detect mirrored structures
-    if password == password[::-1]:
-        penalty += 1
-
-    return penalty
-
-def calculate_entropy(password):
-
-    # Pattern penalty
-    P = calculate_pattern_penalty(password)
-    # Dictionary penalty
-    D = calculate_dictionary_penalty(password)
-    # Repitition penalty
-    R = calculate_repetition_penalty(password)
-
-    lower_case = string.ascii_lowercase
-    upper_case = string.ascii_uppercase
-    digits = string.digits
-    special_characters = string.punctuation
-
-    char_set = set(password)
-    possible_chars = set()
-
-    if any(c in lower_case for c in char_set):
-        possible_chars.update(lower_case)
-    if any(c in upper_case for c in char_set):
-        possible_chars.update(upper_case)
-    if any(c in digits for c in char_set):
-        possible_chars.update(digits)
-    if any(c in special_characters for c in char_set):
-        possible_chars.update(special_characters)
-    N = len(possible_chars)
-    L = len(password)
-
-    base_entropy = L * np.log2(N)
-
-    improved_entropy = (L - P - R) * np.log2(N) - D
-
-    if (D == -1):
-        improved_entropy = 0
-    
-
-    return base_entropy, improved_entropy
-
 def display_results(sorted_passwords):
         # Sort the dictionary by entropy values in descending order
     sorted_passwords = sorted(sorted_passwords.items(), key=lambda item: item[1], reverse=True)
-    
     # Print the header
     print("PASSWORDS RANKED BY ENTROPY")
     
     # Display each password and its entropy value
     for rank, (password, entropy) in enumerate(sorted_passwords, start=1):
         print(f"{rank}. {password}: {entropy:.3f}")
+
+def visualize_entropy(entropies):
+    passwords = [item[0] for item in entropies]
+    base_entropies = [item[1] for item in entropies]
+    improved_entropies = [item[2] for item in entropies]
+
+    x = np.arange(len(passwords))
+    width = 0.35
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(x - width / 2, base_entropies, width, label="Base Entropy", alpha=0.8)
+    plt.bar(x + width / 2, improved_entropies, width, label="Improved Entropy", alpha=0.8)
+
+    plt.xlabel("Passwords")
+    plt.ylabel("Entropy")
+    plt.title("Password Entropy Comparison")
+    plt.xticks(x, passwords, rotation=45, ha="right")
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
 
 
 def main():
